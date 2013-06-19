@@ -1,0 +1,4 @@
+#!/bin/sh
+export AUGEAS_ROOT=./tests/sandbox
+export AUGEAS_LENS_LIB=./lens
+augtool $*
