@@ -1,18 +1,20 @@
+from webtest import TestApp
+
+import os
 import arapi
 
-def test_help():
-    assert len(arapi.help()) > 0
+os.environ['ARAPI_CONFIG'] = './arapi/conf/arapi_dev.cfg'
+
+def test_arapi():
+    app = TestApp(arapi.GetMainApp())
+    get_str = '/help'
+    assert app.get(get_str).status == '200 OK'
+
 
 def test_get():
-    c = arapi.config.GetConfig(devel=True)
-    arapi.AugeasSingletonWrapper(root=c['root'], loadpath=c['loadpath'])
-    r = arapi.handle_get_or_match('get', 'files/etc/hosts/1/ipaddr')
-    assert r == '127.0.0.1'
-
-def test_match():
-    c = arapi.config.GetConfig(devel=True)
-    arapi.AugeasSingletonWrapper(root=c['root'], loadpath=c['loadpath'])
-    r = arapi.handle_get_or_match('match', 'files/etc/hosts/*')
-    assert r == ['/files/etc/hosts/1']
-
+    app = TestApp(arapi.GetMainApp())
+    get_str = '/get/files/etc/hosts/1/ipaddr'
+    resp = app.get(get_str)
+    assert resp.status == '200 OK'
+    resp.mustcontain == '127.0.0.1'
 

@@ -5,6 +5,7 @@ import multiprocessing
 
 from setuptools import setup
 
+
 setup(name='arapi',
       version='0.1',
       description='REST API to Augeas tree',
@@ -13,7 +14,7 @@ setup(name='arapi',
       url='https://github.com/t0mk/arapi',
       packages=['arapi'],
       package_data={'arapi': ['conf/*']},
-      scripts=['arapid'],
+      scripts=['arapi_start_devel'],
       test_suite='nose.collector',
-      tests_require='nose',
+      tests_require=['nose', 'webtest'],
      )

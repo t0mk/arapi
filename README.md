@@ -11,7 +11,7 @@ On Ubuntu, the only dependency is python-augeas. bottle.py is included as the ve
 
 Instructions
 ------------
-To run a devel instance, do ./arapid -d in the top-level dir. see arapi/conf/arapi\_dev.cfg for configuration details.
+To run a devel instance, do ./arapi\_start\_devel in the top-level dir. see arapi/conf/arapi\_dev.cfg for configuration details.
 
   If arapi is listening on 127.0.0.1:8091, you can see nodes in /etc/hosts as:
 
@@ -31,7 +31,7 @@ curl http://127.0.0.1:8091/help
 This is generated automatically from docstrings of handling functions.
 
 
-  A devel instance will read configuration from arapi/conf/arapi_dev.cfg, normal instance (without -d) will attempt to read it from /etc/arapi/arapi.cfg.
+  A devel instance will read configuration from arapi/conf/arapi_dev.cfg, normal instance will attempt to read it from /etc/arapi/arapi.cfg. The config file location is passed in environment variable ARAPI_CONFIG.
 
   You can also supply additional lens files in a directory. You must specify the directory in arapi.cfg then.
 
