@@ -3,29 +3,29 @@ import logging
 import sys
 
 # local imports
-import bottle
-import config
-import bottle_augeas
+import arapi.bottle
+import arapi.config
+import arapi.plugins.bottle_augeas
 
-main = bottle.Bottle()
+main = arapi.bottle.Bottle()
 
 class GetMainApp(object):
     _main_app = None
     def __new__(cls, *args, **kwargs):
         if cls._main_app is None:
             logging.basicConfig(format='%(levelname)s: %(message)s',
-                level='DEBUG' if config.DebugMode() else 'INFO')
+                level='DEBUG' if arapi.config.DebugMode() else 'INFO')
 
-            config_dict = config.GetConfig()
+            config_dict = arapi.config.GetConfig()
 
-            main.install(bottle_augeas.AugeasPlugin(
+            main.install(arapi.plugins.bottle_augeas.AugeasPlugin(
                 root=config_dict['root'], loadpath=config_dict['loadpath']))
             cls._main_app = main
         return cls._main_app
 
 def sanitizePath(p):
     if not p:
-        bottle.redirect('/help')
+        arapi.bottle.redirect('/help')
     if p[0] != "/":
         return "/" + p
     else:
@@ -42,7 +42,7 @@ def help():
             url_handling_method = sys.modules[__name__].__dict__[symbol]
             txt += url_handling_method.__doc__
             txt += "\n"
-    bottle.response.content_type = "text/plain"
+    arapi.bottle.response.content_type = "text/plain"
     return txt
 
 
@@ -63,8 +63,8 @@ def handle_get_or_match(action, path, augeas_handle):
     elif action == 'match':
         result = augeas_handle.match(sanitizePath(path))
     else:
-        bottle.abort(400,
+        arapi.bottle.abort(400,
             'Forbidden action for GET. See /help')
-    bottle.response.content_type = "text/plain"
+    arapi.bottle.response.content_type = "text/plain"
     return result
 
