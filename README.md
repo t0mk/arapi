@@ -11,7 +11,7 @@ On Ubuntu, the only dependency is python-augeas. bottle.py is included as the ve
 
 Instructions
 ------------
-To run a devel instance, do ./arapi\_start\_devel in the top-level dir. see arapi/conf/arapi\_dev.cfg for configuration details.
+To run a devel instance, do ./arapi\_devel in the top-level dir. see arapi/conf/arapi\_dev.cfg for configuration details.
 
   If arapi is listening on 127.0.0.1:8091, you can see nodes in /etc/hosts as:
 
