@@ -7,7 +7,12 @@ import arapi.bottle
 import arapi.config
 import arapi.plugins.bottle_augeas
 
-main = arapi.bottle.Bottle()
+#subapplications import
+import arapi.subapps.testsubapp
+
+
+app = arapi.bottle.Bottle()
+
 
 class GetMainApp(object):
     _main_app = None
@@ -18,10 +23,20 @@ class GetMainApp(object):
 
             config_dict = arapi.config.GetConfig()
 
-            main.install(arapi.plugins.bottle_augeas.AugeasPlugin(
-                root=config_dict['root'], loadpath=config_dict['loadpath']))
-            cls._main_app = main
+            aug_plugin = arapi.plugins.bottle_augeas.AugeasPlugin(
+                root=config_dict['root'], loadpath=config_dict['loadpath'])
+            app.install(aug_plugin)
+
+            # mount sub-applications
+            app.mount('/testsubapp/', arapi.subapps.testsubapp.app, skip=None)
+
+            arapi.subapps.testsubapp.app.install(aug_plugin)
+
+
+            cls._main_app = app
         return cls._main_app
+
+
 
 def sanitizePath(p):
     if not p:
@@ -32,7 +47,7 @@ def sanitizePath(p):
         return p
 
 
-@main.route('/help')
+@app.get('/help')
 def help():
     """List current scope and show docstrings of url-handling methods."""
     txt = ("API listing for arapi instance\n"
@@ -46,8 +61,9 @@ def help():
     return txt
 
 
-@main.route('/<action>/<path:path>')
-def handle_get_or_match(action, path, augeas_handle):
+@app.get('/get/<path:path>')
+@app.get('/match/<path:path>')
+def handle_get_or_match(path, augeas_handle):
     """* GET to /get/<path expresison> or /match/<path expression>
 
          Will do augeas get or match for given path expression.
@@ -58,13 +74,11 @@ def handle_get_or_match(action, path, augeas_handle):
          More about Augeas paths:
            https://github.com/hercules-team/augeas/wiki/Path-expressions
     """
+    action = bottle.request.path.split('/')[1]
     if action == 'get':
         result = augeas_handle.get(sanitizePath(path))
     elif action == 'match':
         result = augeas_handle.match(sanitizePath(path))
-    else:
-        arapi.bottle.abort(400,
-            'Forbidden action for GET. See /help')
     arapi.bottle.response.content_type = "text/plain"
     return result
 
