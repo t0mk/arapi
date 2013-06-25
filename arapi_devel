@@ -9,4 +9,6 @@ os.environ['ARAPI_CONFIG'] = './arapi/conf/arapi_dev.cfg'
 os.environ['ARAPI_DEBUG'] = 'Yeah'
 
 if __name__ == '__main__':
-    arapi.GetMainApp().run(port=PORT, host=HOST, debug=True)
+    app = arapi.GetMainApp()
+    arapi.loadAllSubApps(app)
+    app.run(port=PORT, host=HOST, debug=True)
