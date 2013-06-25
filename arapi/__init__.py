@@ -6,7 +6,6 @@ import sys
 # local imports
 import arapi.bottle
 import arapi.config
-import arapi.helpers
 import arapi.plugins.bottle_augeas
 
 # list of Arapi plugins which are inherited from the main application to
@@ -21,6 +20,41 @@ import arapi.subapps
 
 
 app = arapi.bottle.Bottle()
+url_base = "/"
+
+class ArapiException(bottle.BottleException):
+    pass
+
+
+def getAppHandlers(var_app):
+    handlers = {}
+    for route in var_app.routes:
+        if route.callback.__name__.startswith('handle_'):
+            handlers[route.callback] = (route.method, route.rule)
+        elif route.callback.__name__ == 'mountpoint_wrapper':
+            prefix = '/' + route.rule.split('/')[1]
+            sub_handlers = getAppHandlers(route.config.mountpoint['target'])
+            for h in sub_handlers:
+                m, rule = sub_handlers[h]
+                sub_handlers[h] = (m, prefix + rule)
+            handlers.update(sub_handlers)
+    return handlers
+
+
+def getHelpDoc(var_app, url_base):
+    txt = "API listing for app on %s\n" % url_base
+    txt += '=' * (len(txt) - 1) + '\n'
+    logging.info("Generating help for %s" % var_app)
+
+    for handler, tup in getAppHandlers(var_app).items():
+        if not handler.__doc__:
+            logging.error("You forgot to document %s" % handler)
+            raise ArapiException("%s not documented" % handler)
+        http_method, rule = tup
+        txt += "* " + http_method + " to " + rule + '\n'
+        txt += handler.__doc__
+        txt += "\n"
+    return txt
 
 
 def loadAllSubApps(main_app):
@@ -42,8 +76,9 @@ def loadSubApp(main_app, subapp_modname):
     main_app.mount(subapp_mod.url_base, subapp_mod.app, skip=None)
 
     # create a doc resource for a sub-app, and update doc of mother app
-    subapp_mod.app.config.doc = arapi.helpers.getHelpDoc(subapp_mod.app)
-    main_app.config.doc = arapi.helpers.getHelpDoc(main_app)
+    subapp_mod.app.config.doc = getHelpDoc(subapp_mod.app,
+                                           subapp_mod.url_base)
+    main_app.config.doc = getHelpDoc(main_app, "/")
 
     # inherit plugins from the main app
     # (Is this cool? maybe each sub-app should have it's own plugin instance)
@@ -67,7 +102,7 @@ class GetMainApp(object):
                 root=config_dict['root'], loadpath=config_dict['loadpath'])
             app.install(aug_plugin)
 
-            app.doc = arapi.helpers.getHelpDoc(app)
+            app.doc = getHelpDoc(app, "/")
 
             cls._main_app = app
         return cls._main_app
@@ -92,9 +127,7 @@ def help():
 @app.get('/get/<path:path>')
 @app.get('/match/<path:path>')
 def handle_get_or_match(path, augeas_handle):
-    """* GET to /get/<path expresison> or /match/<path expression>
-
-         Will do augeas get or match for given path expression.
+    """  Will do augeas get or match for given path expression.
          E.g.:
            /get/files/etc/hosts/1/ipaddress
            /match/files/etc/hosts/*

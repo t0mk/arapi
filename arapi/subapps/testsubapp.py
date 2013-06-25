@@ -10,8 +10,7 @@ def help():
 
 @app.post('/addserver/')
 def handle_addhost(augeas_handle):
-    """ POST to /testsubapp/addserver/
-        Will return "added"
+    """  Will return "added"
     """
     print "adding host"
     arapi.bottle.response.conent_type = "text/plain"
@@ -19,8 +18,7 @@ def handle_addhost(augeas_handle):
 
 @app.post('/removeserver/')
 def handle_removehost(augeas_handle):
-    """ POST to /testsubapp/removeserver/
-        Will return "removed"
+    """  Will return "removed"
     """
     print "adding host"
     arapi.bottle.response.conent_type = "text/plain"
